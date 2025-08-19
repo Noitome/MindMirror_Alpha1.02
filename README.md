@@ -1,4 +1,4 @@
-# MindMirror Alpha 1.0
+# MindMirror Alpha 1.03 14.55 19/08/2025
 
 **MindMirror – Adaptive Visual Goal & Task Mapping**
 
