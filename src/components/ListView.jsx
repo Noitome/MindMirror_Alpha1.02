@@ -95,7 +95,7 @@ const ListView = ({ showBackendData }) => {
         padding: '20px',
         paddingBottom: '120px'
       }}>
-        <h2 style={{ marginTop: 0 }}>Priority List (Ordered by Bounding Box Size)</h2>
+        <h2 style={{ marginTop: 0 }}>Priority List (Ordered by Time Scale)</h2>
         
         {taskList.length === 0 ? (
           <div style={{ textAlign: 'center', color: '#666', padding: '40px' }}>
