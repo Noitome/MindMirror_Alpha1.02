@@ -1,55 +1,39 @@
 import React, { useMemo } from 'react'
 import { useMindMapStore } from '../store/mindMapStore'
+import { computeRollupTimes, computeDepths } from '../lib/aggregation'
 
 const ListView = ({ showBackendData }) => {
   const tasks = useMindMapStore(state => state.tasks)
   const nodes = useMindMapStore(state => state.nodes)
+  const edges = useMindMapStore(state => state.edges)
 
   const taskList = useMemo(() => {
-    // Create array of tasks with their bounding box size data
+    const rolled = computeRollupTimes(tasks, edges)
+    const depths = computeDepths(tasks, edges)
+
     const taskData = Object.values(tasks).map(task => {
       const node = nodes.find(n => n.id === task.id)
       const width = node?.data?.width || 200
       const height = node?.data?.height || 100
-      
-      // Calculate bounding box size (width * height)
       const boundingBoxSize = width * height
-      
       return {
         ...task,
         width,
         height,
         boundingBoxSize,
-        timeSpent: task.timeSpent || 0
+        timeSpent: task.timeSpent || 0,
+        rolledTime: rolled[task.id] || 0,
+        depth: depths[task.id] || 0
       }
     })
 
-    // Calculate total time spent and total bounding box size
     const totalTime = taskData.reduce((sum, task) => sum + task.timeSpent, 0)
     const totalBoundingBoxSize = taskData.reduce((sum, task) => sum + task.boundingBoxSize, 0)
-    
-    if (totalTime === 0 || totalBoundingBoxSize === 0) {
-      return taskData.map(task => ({
-        ...task,
-        expectedTimeRatio: 0,
-        actualTimeRatio: 0,
-        alignmentScore: 0,
-        timeRatio: 0
-      }))
-    }
 
-    // Calculate alignment scores based on how actual time distribution matches expected distribution
-    return taskData.map(task => {
-      // Expected time ratio based on bounding box size
-      const expectedTimeRatio = task.boundingBoxSize / totalBoundingBoxSize
-      
-      // Actual time ratio
-      const actualTimeRatio = task.timeSpent / totalTime
-      
-      // Calculate alignment score (100% = perfect match, 0% = completely off)
-      // This measures how close actual time is to expected time
+    const enriched = taskData.map(task => {
+      const expectedTimeRatio = totalBoundingBoxSize ? task.boundingBoxSize / totalBoundingBoxSize : 0
+      const actualTimeRatio = totalTime ? task.timeSpent / totalTime : 0
       const alignmentScore = Math.max(0, Math.min(100, Math.round(100 - (Math.abs(actualTimeRatio - expectedTimeRatio) * 100))))
-      
       return {
         ...task,
         expectedTimeRatio,
@@ -57,8 +41,10 @@ const ListView = ({ showBackendData }) => {
         alignmentScore,
         timeRatio: Math.min(100, Math.round(actualTimeRatio * 100))
       }
-    }).sort((a, b) => b.boundingBoxSize - a.boundingBoxSize) // Sort by bounding box size descending
-  }, [tasks, nodes])
+    })
+
+    return enriched.sort((a, b) => b.rolledTime - a.rolledTime)
+  }, [tasks, nodes, edges])
 
   const totalAlignmentScore = useMemo(() => {
     if (taskList.length === 0) return 0
@@ -109,7 +95,7 @@ const ListView = ({ showBackendData }) => {
         padding: '20px',
         paddingBottom: '120px'
       }}>
-        <h2 style={{ marginTop: 0 }}>Priority List (Ordered by Bounding Box Size)</h2>
+        <h2 style={{ marginTop: 0 }}>Priority List (Ordered by Time Scale)</h2>
         
         {taskList.length === 0 ? (
           <div style={{ textAlign: 'center', color: '#666', padding: '40px' }}>
@@ -137,7 +123,7 @@ const ListView = ({ showBackendData }) => {
                     marginBottom: '8px'
                   }}>
                     <div style={{ flex: 1 }}>
-                      <h4 style={{ margin: 0, color: '#333' }}>
+                      <h4 style={{ margin: 0, color: '#333', paddingLeft: `${(task.depth || 0) * 16}px` }}>
                         {index + 1}. {task.name}
                       </h4>
                       <div style={{

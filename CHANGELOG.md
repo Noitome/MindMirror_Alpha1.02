@@ -12,8 +12,14 @@ This log is the single source of truth for what has changed between versions.
 ---
 
 ## [Unreleased]
-- Placeholder for upcoming features.  
-- All changes here will eventually roll into the next tagged release.  
+### Added
+- Subnode to parent time aggregation utilities in `src/lib/aggregation.js`.
+- Priority sorting by time scale (rolled-up time) in Priority List.
+- Subnode indent in Priority List based on hierarchy depth.
+- Full-screen/orientation fit behavior for Mind Map.
+
+### Changed
+- ListView ordering updated to use rolled-up time instead of bounding box size while preserving alignment calculations.
 
 ---
 
@@ -38,4 +44,4 @@ This log is the single source of truth for what has changed between versions.
 ## Contribution Rules
 - Never remove or regress baseline functionality.  
 - Only **add** features or enhancements in future versions.  
-- Each release must document changes here under **Added / Changed / Fixed**.  
+- Each release must document changes here under **Added / Changed / Fixed**.    
