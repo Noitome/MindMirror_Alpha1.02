@@ -22,6 +22,7 @@ const MindMapContent = () => {
   const updateEdges = useMindMapStore(state => state.updateEdges)
   const updateTaskSize = useMindMapStore(state => state.updateTaskSize)
   const { getNodes } = useReactFlow()
+  const rf = useReactFlow()
 
   const onNodesChange = useCallback(
     (changes) => {
@@ -60,6 +61,22 @@ const MindMapContent = () => {
     
     const interval = setInterval(syncDimensions, 100)
     return () => clearInterval(interval)
+  useEffect(() => {
+    const doFit = () => {
+      try {
+        rf.fitView({ padding: 0.2, includeHiddenNodes: true })
+      } catch (e) {}
+    }
+    doFit()
+    const onResize = () => doFit()
+    window.addEventListener('resize', onResize)
+    window.addEventListener('orientationchange', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      window.removeEventListener('orientationchange', onResize)
+    }
+  }, [rf])
+
   }, [getNodes, updateTaskSize])
 
   return (
